@@ -12,5 +12,5 @@ $(TARGET) : $(OBJ)
 	$(CC) -c $<
 
 clean:
-	rm $(TARGET) $(OBJ)
+	rm $(TARGET) *.o
 	clear
