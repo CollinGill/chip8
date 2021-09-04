@@ -1,8 +1,7 @@
 #include <stdio.h>
 #include "include/cpu.h"
 
-void initalizeCHIP8(CHIP8* chip8)
-{
+void initalizeCHIP8(CHIP8* chip8) {
     // Clear the memory
     for (int i = 0; i < 4096; i++)
         chip8->memArr[i] = 0;
@@ -14,7 +13,7 @@ void initalizeCHIP8(CHIP8* chip8)
     for (int i = 0; i < (sizeof(chip8->V) / sizeof(chip8->V[0])); i++)
         chip8->V[i] = 0x00;
 
-    chip8->PC = 0x00;
+    chip8->PC = 0x200;
     chip8->I = 0x00;
     chip8->DT = 0x00;
     chip8->ST = 0x00;
