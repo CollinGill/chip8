@@ -9,7 +9,10 @@ $(TARGET) : $(OBJ)
 	clear
 
 %.o: %.c $(INC)
-	$(CC) -c $<
+	$(CC) -c -Wall $<
+
+run: 
+	./$(TARGET)
 
 clean:
 	rm $(TARGET) $(OBJ)
