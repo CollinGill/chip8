@@ -13,10 +13,10 @@ void initalizeCHIP8(CHIP8* chip8) {
     for (int i = 0; i < (sizeof(chip8->V) / sizeof(chip8->V[0])); i++)
         chip8->V[i] = 0x00;
 
-    chip8->PC = 0x200;
-    chip8->I = 0x00;
-    chip8->DT = 0x00;
-    chip8->ST = 0x00;
+    chip8->PC = 0x0000;
+    chip8->I = 0x0200;
+    chip8->DT = 0x0000;
+    chip8->ST = 0x0000;
 
     uint8_t font[] = {0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
                       0x20, 0x60, 0x20, 0x20, 0x70, // 1
