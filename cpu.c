@@ -3,8 +3,7 @@
 
 void initalizeCHIP8(CHIP8* chip8)
 {
-    // When iniitalizing memArr to 0's, malloc fails
-
+    // Clear the memory
     for (int i = 0; i < 4096; i++)
         chip8->memArr[i] = 0;
 
