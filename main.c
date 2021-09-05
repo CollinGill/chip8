@@ -18,7 +18,7 @@
 int main(int argc, char* argv[])
 {
     CHIP8 chip8;
-    initalizeCHIP8(&chip8);
+    initializeCHIP8(&chip8);
 
     if (argc <= 1)
     {
