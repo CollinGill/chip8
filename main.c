@@ -15,12 +15,21 @@
 
 // CHIP-8 programs should be loaded into memory starting at address 0x200
 
-int main()
+int main(int argc, char* argv[])
 {
     CHIP8 chip8;
     initalizeCHIP8(&chip8);
 
-    printStatus(chip8);
+    if (argc <= 1)
+    {
+        printf("ERROR: Must include rom.\n");
+        exit(1);
+    }
+    else
+    {
+        loadROM(&chip8, argv[1]);
+        printStatus(&chip8);
+    }
 
     return 0;
 }

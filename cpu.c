@@ -3,7 +3,7 @@
 
 void initalizeCHIP8(CHIP8* chip8) {
     // Clear the memory
-    for (int i = 0; i < 4096; i++)
+    for (int i = 0; i < (sizeof(chip8->memArr) / sizeof(chip8->memArr[0])); i++)
         chip8->memArr[i] = 0;
 
     // Initialize the display to 0's
@@ -43,12 +43,44 @@ void initalizeCHIP8(CHIP8* chip8) {
         chip8->memArr[i] = font[i];
 }
 
-void printStatus(CHIP8 chip8)
+void loadROM(CHIP8* chip8, char* file)
 {
-    printf("Memory:\n\n");
-    for (int i = 0; i < (sizeof(chip8.memArr) / sizeof(chip8.memArr[0])); i++)
+    // Reads the ROM
+    FILE* rom = fopen(file, "rb");
+
+    // Checks if the ROM is empty
+    if (rom == NULL)
     {
-        if (chip8.memArr[i] != 0)
-            printf("%d: %d\n", i, chip8.memArr[i]);
+        printf("\nERROR: ROM is empty.\n");
+        exit(1);
+    }
+
+    uint8_t buffer[0x0E00];
+
+    fread(buffer, sizeof(buffer), 1, rom);
+
+    //for (int i = 0; i < (sizeof(buffer) / sizeof(buffer[0])); i++)
+    //{
+    //    printf("%d ", buffer[i]);
+    //    if ((i != 0 && i % 4 == 0) || i == (sizeof(buffer) / sizeof(buffer[0])) - 1)
+    //        printf("\n");
+    //}
+
+    int j = 0;
+    for (int i = 0; i < (sizeof(buffer) / sizeof(buffer[0])); i += 2)
+    {
+        chip8->memArr[chip8->I + j] = buffer[i] << 2 | buffer[i + 1];
+        j++;
+    }
+
+    fclose(rom);
+}
+
+void printStatus(CHIP8* chip8)
+{
+    for (int i = 0; i < (sizeof(chip8->memArr) / sizeof(chip8->memArr[0])); i++)
+    {
+        if (chip8->memArr[i] != 0)
+            printf("%x: %x\n", i, chip8->memArr[i]);
     }
 }

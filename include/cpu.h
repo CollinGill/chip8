@@ -21,6 +21,8 @@ typedef struct CHIP8
 
 void initalizeCHIP8(CHIP8* chip8);
 
-void printStatus(CHIP8 chip8);
+void loadROM(CHIP8* chip8, char* fileLocation);
+
+void printStatus(CHIP8* chip8);
 
 #endif
