@@ -55,25 +55,29 @@ void loadROM(CHIP8* chip8, char* file)
         exit(1);
     }
 
+    // Creating the buffer then initializing it to 0's
     uint8_t buffer[0x0E00];
+    for (int i = 0; i < (sizeof(buffer) / sizeof(buffer[0])); i++)
+        buffer[i] = 0;
 
     fread(buffer, sizeof(buffer), 1, rom);
 
     //for (int i = 0; i < (sizeof(buffer) / sizeof(buffer[0])); i++)
     //{
-    //    printf("%d ", buffer[i]);
-    //    if ((i != 0 && i % 4 == 0) || i == (sizeof(buffer) / sizeof(buffer[0])) - 1)
+    //    printf("%x ", buffer[i]);
+    //    if ((i != 0 && i % 15 == 0) || i == (sizeof(buffer) / sizeof(buffer[0])) - 1)
     //        printf("\n");
     //}
 
-    int j = 0;
     for (int i = 0; i < (sizeof(buffer) / sizeof(buffer[0])); i += 2)
     {
-        chip8->memArr[chip8->I + j] = buffer[i] << 2 | buffer[i + 1];
-        j++;
+        chip8->memArr[chip8->I] = buffer[i] << 8 | buffer[i + 1];
+        chip8->I++;
     }
 
     fclose(rom);
+
+    chip8->I = 0x200;
 }
 
 void printStatus(CHIP8* chip8)

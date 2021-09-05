@@ -5,7 +5,7 @@
 
 typedef struct CHIP8
 {
-    uint8_t memArr[4096];
+    uint16_t memArr[4096];
     uint8_t displayArr[64*32];
 
     uint8_t PC;
