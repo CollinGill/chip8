@@ -1,14 +1,15 @@
 TARGET = out
 CC = gcc
-SRC := $(wildcard *.c)
+CFLAGS = -Wall
+SRC := $(wildcard src/*.c)
 OBJ = $(SRC:.c=.o)
 INC := $(wildcard include/*.h) 
 
 $(TARGET) : $(OBJ)
-	$(CC) -o $@ $^
+	$(CC) $(CFLAGS) -o $@ $^
 	clear
 
-%.o: %.c $(INC)
+src/%.o: %.c $(INC)
 	$(CC) -c -Wall $<
 
 run: 
