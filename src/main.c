@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "include/cpu.h"
+#include "./include/run.h"
 
 // ----------------------------------------------------------------------
 //                          Design Specifications
@@ -17,19 +17,11 @@
 
 int main(int argc, char* argv[])
 {
-    CHIP8 chip8;
-    initializeCHIP8(&chip8);
-
-    if (argc <= 1)
-    {
+    if (argc <= 1) {
         printf("ERROR: Must include rom.\n");
         exit(1);
-    }
-    else
-    {
-        loadROM(&chip8, argv[1]);
-        printStatus(&chip8);
-    }
+    } else
+        run(argv[1]);
 
     return 0;
 }

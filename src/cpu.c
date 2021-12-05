@@ -62,8 +62,7 @@ void loadROM(CHIP8* chip8, char* file)
 
     fread(buffer, sizeof(buffer), 1, rom);
 
-    for (int i = 0; i < (sizeof(buffer) / sizeof(buffer[0])); i += 2)
-    {
+    for (int i = 0; i < (sizeof(buffer) / sizeof(buffer[0])); i += 2) {
         chip8->memArr[chip8->I] = buffer[i] << 8 | buffer[i + 1];
         chip8->I++;
     }
@@ -75,8 +74,7 @@ void loadROM(CHIP8* chip8, char* file)
 
 void printStatus(CHIP8* chip8)
 {
-    for (int i = 0; i < (sizeof(chip8->memArr) / sizeof(chip8->memArr[0])); i++)
-    {
+    for (int i = 0; i < (sizeof(chip8->memArr) / sizeof(chip8->memArr[0])); i++) {
         if (chip8->memArr[i] != 0)
             printf("%04x: %04x\n", i, chip8->memArr[i]);
     }
