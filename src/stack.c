@@ -1,9 +1,9 @@
 #include "include/stack.h"
 
-Frame* createFrame(uint16_t data)
+Frame* createFrame(uint16_t data) //data not being used??
 {
     Frame* newFrame = malloc(sizeof(Frame*));
-    newFrame->address = 0x0000;
+    newFrame->address = data;   // originally 0x0000
     newFrame->next = NULL;
     return newFrame;
 }

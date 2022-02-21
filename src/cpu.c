@@ -10,11 +10,16 @@ void initializeCHIP8(CHIP8* chip8) {
     for (int i = 0; i < (sizeof(chip8->displayArr) / sizeof(chip8->displayArr[0])); i++)
         chip8->displayArr[i] = 0x00;
 
+    /*
+     * The display is 64x32
+     * Therefore, for a given position (x,y), its position in the array would be 64x+y 
+     */
+
     for (int i = 0; i < (sizeof(chip8->V) / sizeof(chip8->V[0])); i++)
         chip8->V[i] = 0x00;
 
-    chip8->PC = 0x0000;
-    chip8->I = 0x0200;
+    chip8->PC = 0x0200;
+    chip8->I = 0x0000;
     chip8->DT = 0x0000;
     chip8->ST = 0x0000;
 
@@ -49,8 +54,7 @@ void loadROM(CHIP8* chip8, char* file)
     FILE* rom = fopen(file, "rb");
 
     // Checks if the ROM is empty
-    if (rom == NULL)
-    {
+    if (rom == NULL) {
         printf("\nERROR: ROM is empty.\n");
         exit(1);
     }
@@ -63,13 +67,13 @@ void loadROM(CHIP8* chip8, char* file)
     fread(buffer, sizeof(buffer), 1, rom);
 
     for (int i = 0; i < (sizeof(buffer) / sizeof(buffer[0])); i += 2) {
-        chip8->memArr[chip8->I] = buffer[i] << 8 | buffer[i + 1];
-        chip8->I++;
+        chip8->memArr[chip8->PC] = buffer[i] << 8 | buffer[i + 1];
+        chip8->PC++;
     }
 
     fclose(rom);
 
-    chip8->I = 0x200;
+    chip8->PC = 0x0200;
 }
 
 void printStatus(CHIP8* chip8)
