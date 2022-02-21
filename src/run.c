@@ -19,8 +19,9 @@ void run(char* rom)
         if (chip8.PC < 4096) {
             printf("%04X |\t %04X\n", chip8.PC, chip8.memArr[chip8.PC]);
             running = instructions(chip8.memArr[chip8.PC], &chip8); // uncomment the `running =` part in order to test if opcodes are valid
-        } else {
-            break;
+            if (chip8.DT != 0x0000) {
+                chip8.DT--;
+            }
         }
 
 
@@ -349,6 +350,90 @@ bool instructions(uint16_t opcode, CHIP8* chip8)
         uint8_t pos = 64 * chip8->V[thirdDigit] + chip8->V[secondDigit];
 
         chip8->PC++;
+        break;
+    }
+
+    case 0xE:
+    {
+        switch ((secondDigit << 4) | firstDigit)
+        {
+            case 0x9E:
+            {
+                chip8->PC++;
+                break;
+            }
+            case 0xA1:
+            {
+                chip8->PC++;
+                break;
+            }
+            default:
+            {
+                printf("\nERROR: Unrecognized OP-code|\t`%04x` at %04x\n", opcode, chip8->PC);
+                return false;
+                break;
+            }
+        }
+
+        break;
+    }
+
+    case 0xF:
+    {
+        switch ((secondDigit << 4) | firstDigit)
+        {
+            case 0x07:
+            {
+                chip8->PC++;
+                break;
+            }
+            case 0x0A:
+            {
+                chip8->PC++;
+                break;
+            }
+            case 0x15:
+            {
+                chip8->PC++;
+                break;
+            }
+            case 0x18:
+            {
+                chip8->PC++;
+                break;
+            }
+            case 0x1E:
+            {
+                chip8->PC++;
+                break;
+            }
+            case 0x29:
+            {
+                chip8->PC++;
+                break;
+            }
+            case 0x33:
+            {
+                chip8->PC++;
+                break;
+            }
+            case 0x55:
+            {
+                chip8->PC++;
+                break;
+            }
+            case 0x65:
+            {
+                chip8->PC++;
+                break;
+            }
+            default:
+            {
+                printf("\nERROR: Unrecognized OP-code|\t`%04x` at %04x\n", opcode, chip8->PC);
+                return false;
+                break;
+            }
+        }
         break;
     }
     
