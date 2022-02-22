@@ -18,7 +18,7 @@ void run(char* rom)
         // For debugging purpose to prevent segfault while all the instructions aren't fully supported
         if (chip8.PC < 4096) {
             printf("%04X |\t %04X\n", chip8.PC, chip8.memArr[chip8.PC]);
-            running = instructions(chip8.memArr[chip8.PC], &chip8); // uncomment the `running =` part in order to test if opcodes are valid
+            /*running =*/ instructions(chip8.memArr[chip8.PC], &chip8); // uncomment the `running =` part in order to test if opcodes are valid
             if (chip8.DT != 0x0000) {
                 chip8.DT--;
             }
