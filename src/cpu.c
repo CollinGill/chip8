@@ -8,7 +8,7 @@ void initializeCHIP8(CHIP8* chip8) {
 
     // Initialize the display to 0's
     for (int i = 0; i < (sizeof(chip8->displayArr) / sizeof(chip8->displayArr[0])); i++)
-        chip8->displayArr[i] = 0x00;
+        chip8->displayArr[i] = 0;
 
     /*
      * The display is 64x32

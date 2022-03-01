@@ -1,5 +1,8 @@
 #include "./include/run.h"
 
+#define BACKGROUND_COLOR    0x0000
+#define ACCENT_COLOR        0xFFFF
+
 void run(char* rom)
 {
     CHIP8 chip8;
@@ -7,10 +10,11 @@ void run(char* rom)
     loadROM(&chip8, rom);
 
     Chip8Window chipWindow;
-    initializeWindow(&chipWindow);
+    initializeWindow(&chipWindow, &chip8);
 
-    int count = 1;
+    int count = 0;
     bool running = true;
+    time_t begin = time(NULL);
     while (running) {
         SDL_Event event;
 
@@ -20,10 +24,17 @@ void run(char* rom)
         running = instructions(opcode, &chip8); // uncomment the `running =` part in order to test if opcodes are valid
         
         // TODO: Implement the delay and sound timers at 60Hz
-        if (chip8.DT != 0x0000) {
-            chip8.DT--;
+        if (count % 9 == 0) {
+            if (chip8.DT > 0)
+                chip8.DT--;
+            if (chip8.ST > 0) 
+                chip8.ST--;
         }
 
+        if (chip8.V[0xF] == 1) {
+            drawScreen(&chipWindow, &chip8);
+            chip8.V[0xF] = 0;
+        }
 
         while (SDL_PollEvent(&event) != 0) {
             switch (event.type) {
@@ -35,6 +46,7 @@ void run(char* rom)
         }
 
         count++;
+        usleep(1000000); // linux specific
     }
     SDL_DestroyWindow((&chipWindow)->window);
     SDL_Quit();
@@ -66,6 +78,7 @@ bool instructions(uint16_t opcode, CHIP8* chip8)
                 // 0x00E0: Clear display
                 for (int i = 0; i < (sizeof(chip8->displayArr) / sizeof(chip8->displayArr[0])); i++)
                     chip8->displayArr[i] = 0x00;
+                chip8->V[0xF] = 1;
                 chip8->PC += 2;
                 break;
             }
@@ -347,7 +360,41 @@ bool instructions(uint16_t opcode, CHIP8* chip8)
         // Each row of 8 pixels is read as bit-coded starting from memory location I (doesn't change after instruction)
         // V[F] is set to 1 if any screen pixels are flipped from set to unset when the sprite is drawn, else 0
 
-        uint8_t pos = 64 * chip8->V[thirdDigit] + chip8->V[secondDigit];
+        uint8_t curPos = 64 * chip8->V[thirdDigit] + chip8->V[secondDigit]; // Location the sprite is drawn at
+
+        bool flip = false;
+        uint8_t tempPointer = chip8->I;
+
+        /*
+        for (int i = 0; i < firstDigit; i++) {
+            for (int j = 0; j < 8; j++) {
+                if ((chip8->memArr[tempPointer] ^ chip8->displayArr[curPos]) == 1)
+                    flip = true;
+                chip8->displayArr[curPos++] = chip8->memArr[tempPointer++];
+            }
+            curPos -= 8;
+            curPos *= 64;
+        }
+        */
+
+        for (int i = 0; i < firstDigit; i++) {
+            uint8_t pixel = chip8->memArr[tempPointer + i];
+            for (int j = 0; j < 8; j++) {
+                if ((pixel & (0x80 >> j)) != 0) {
+                    if (chip8->displayArr[curPos] == 1) {
+                        chip8->V[0xF] = 1;
+                    }
+                    chip8->displayArr[curPos] ^= 1;
+                }
+                curPos++;
+            }
+            curPos -= 8;
+            curPos *= 64;
+        } 
+
+        if (flip)
+            chip8->V[0xF] = 1;
+
 
         chip8->PC += 2;
         break;
