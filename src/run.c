@@ -19,9 +19,8 @@ void run(char* rom)
 
         uint16_t opcode = (chip8.memArr[chip8.PC] << 8) | chip8.memArr[chip8.PC + 1];
         printf("%04X |\t %04X\n", chip8.PC, opcode);
-        running = instructions(opcode, &chip8); // uncomment the `running =` part in order to test if opcodes are valid
+        /*running = */instructions(opcode, &chip8); // uncomment the `running =` part in order to test if opcodes are valid
         
-        // TODO: Implement the delay and sound timers at 60Hz
         if (count % 9 == 0) {
             if (chip8.DT > 0)
                 chip8.DT--;
@@ -29,7 +28,7 @@ void run(char* rom)
                 chip8.ST--;
         }
 
-        if (chip8.V[0xF] == 1)
+        if ((opcode & 0xF000) >> 12 == 0xD)
             drawScreen(&chipWindow, &chip8);
 
         while (SDL_PollEvent(&event) != 0) {
@@ -43,11 +42,10 @@ void run(char* rom)
 
         count++;
         regDump(&chip8);
-        usleep(100000); // linux specific
+        usleep(1000); // linux specific
     }
     SDL_DestroyWindow((&chipWindow)->window);
     SDL_Quit();
-
 }
 
 
@@ -84,7 +82,7 @@ bool instructions(uint16_t opcode, CHIP8* chip8)
             {
                 // 0x00EE: Returns from subroutine
                 uint16_t address = pop(chip8->chipStack);
-                chip8->PC = address;
+                chip8->PC = address + 2;
                 break;
             }
             default:
@@ -247,7 +245,7 @@ bool instructions(uint16_t opcode, CHIP8* chip8)
 
             chip8->V[thirdDigit] = diff;
             chip8->V[0xF] = 0;
-            if ((chip8->V[thirdDigit] & 0xF) > (chip8->V[secondDigit] & 0xF)) 
+            if ((chip8->V[thirdDigit] & 0xF) < (chip8->V[secondDigit] & 0xF)) 
                 chip8->V[0xF] = 1;
 
             chip8->PC += 2;
@@ -270,7 +268,7 @@ bool instructions(uint16_t opcode, CHIP8* chip8)
 
             chip8->V[thirdDigit] = diff;
             chip8->V[0xF] = 0;
-            if ((chip8->V[thirdDigit] & 0xF) > (chip8->V[secondDigit] & 0xF)) 
+            if ((chip8->V[thirdDigit] & 0xF) < (chip8->V[secondDigit] & 0xF)) 
                 chip8->V[0xF] = 1;
 
             chip8->PC += 2;
@@ -359,13 +357,13 @@ bool instructions(uint16_t opcode, CHIP8* chip8)
         uint16_t originalI = chip8->I;
         chip8->V[0xF] = 0;
 
-        printf("\n\t\tInitial: (%02X, %02X) : %2X\n", xPos, yPos, (yPos * 64) + xPos);
+        //printf("\n\t\tInitial: (%02X, %02X) : %2X\n", xPos, yPos, (yPos * 64) + xPos);
 
         for (int y = 0; y < firstDigit; y++) {
             chip8->I = originalI + y;
             uint8_t pixelData = chip8->memArr[chip8->I];
             uint8_t curYPos = yPos + y;
-            printf("%02X", pixelData);
+            //printf("%02X", pixelData);
             for (int x = 0; x < 8; x++) {
                 uint8_t curXPos = xPos + x;
                 uint16_t buffPos = (curYPos * 64) + curXPos;
@@ -373,7 +371,7 @@ bool instructions(uint16_t opcode, CHIP8* chip8)
                 uint8_t pixelBit = (pixelData & 0x80) >> 7;
                 //printf("(%2X, %2X) : %1X\n", curXPos, curYPos, pixelBit);
                 //if ((chip8->displayArr[buffPos] == 1) && (pixelBit == 0))
-                if (chip8->displayArr[buffPos] ^ pixelBit == 0)
+                if ((chip8->displayArr[buffPos] == 1) && (chip8->displayArr[buffPos] ^ pixelBit == 0))
                     chip8->V[0xF] = 1;
 
                 
@@ -381,10 +379,10 @@ bool instructions(uint16_t opcode, CHIP8* chip8)
 
                 pixelData = pixelData << 1;
             }
-            printf("\n");
+            //printf("\n");
         }
 
-        printDisplayBuff(chip8);
+        //printDisplayBuff(chip8);
 
         chip8->I = originalI;
         chip8->PC += 2;

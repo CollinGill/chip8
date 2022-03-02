@@ -80,7 +80,7 @@ void printStatus(CHIP8* chip8)
 {
     for (int i = 0; i < (sizeof(chip8->memArr) / sizeof(chip8->memArr[0])); i++) {
         //if (chip8->memArr[i] != 0)
-            printf("\n%03X | %02X\n", i, chip8->memArr[i]);
+            printf("%03X | %02X\n", i, chip8->memArr[i]);
     }
 }
 
