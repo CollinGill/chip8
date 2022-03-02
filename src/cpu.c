@@ -83,3 +83,25 @@ void printStatus(CHIP8* chip8)
             printf("\n%03X | %02X\n", i, chip8->memArr[i]);
     }
 }
+
+void printDisplayBuff(CHIP8* chip8)
+{
+    for (int i = 0; i < DISPLAY_HEIGHT * DISPLAY_WIDTH; i++) {
+        if (i % 64 == 0 && i != 0)
+            printf("\n");
+        if (chip8->displayArr[i]== 1)
+            printf("*");
+        else
+            printf(" ");
+    }
+
+    printf("\n");
+}
+
+void regDump(CHIP8* chip8)
+{
+    printf("DEBUG\n");
+    for (int i = 0; i < 0x10; i++)
+        printf("\tV[%X]: %02X\n", i, chip8->V[i]);
+    printf("\t   I: %03X\n", chip8->I);
+}

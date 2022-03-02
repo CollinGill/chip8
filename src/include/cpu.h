@@ -12,7 +12,7 @@ typedef struct CHIP8
     uint8_t displayArr[DISPLAY_HEIGHT * DISPLAY_WIDTH];
 
     uint16_t PC;
-    uint8_t I;
+    uint16_t I;
 
     uint8_t DT;
     uint8_t ST;
@@ -27,5 +27,9 @@ void initializeCHIP8(CHIP8* chip8);
 void loadROM(CHIP8* chip8, char* fileLocation);
 
 void printStatus(CHIP8* chip8);
+
+void printDisplayBuff(CHIP8* chip8);
+
+void regDump(CHIP8* chip8);
 
 #endif

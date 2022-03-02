@@ -34,7 +34,7 @@ void initializeRenderer(Chip8Window* chipWindow)
 
 void initializeTexture(Chip8Window* chipWindow)
 {
-    chipWindow->texture = SDL_CreateTexture(chipWindow->renderer, SDL_PIXELFORMAT_RGB24, SDL_TEXTUREACCESS_TARGET, DISPLAY_WIDTH, DISPLAY_HEIGHT);
+    chipWindow->texture = SDL_CreateTexture(chipWindow->renderer, SDL_PIXELFORMAT_RGB332, SDL_TEXTUREACCESS_TARGET, DISPLAY_WIDTH, DISPLAY_HEIGHT);
 }
 
 void initializeWindow(Chip8Window* chipWindow, CHIP8* chip8)
@@ -51,7 +51,7 @@ void initializeWindow(Chip8Window* chipWindow, CHIP8* chip8)
 
 void drawScreen(Chip8Window* chipWindow, CHIP8* chip8)
 {
-    SDL_UpdateTexture(chipWindow->texture, NULL, chip8->displayArr, DISPLAY_WIDTH * sizeof(uint32_t));
+    SDL_UpdateTexture(chipWindow->texture, NULL, chip8->displayArr, DISPLAY_WIDTH * sizeof(uint8_t));
     SDL_RenderClear(chipWindow->renderer);
     SDL_RenderCopy(chipWindow->renderer, chipWindow->texture, NULL, NULL);
     SDL_RenderPresent(chipWindow->renderer);

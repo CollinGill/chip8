@@ -1,8 +1,5 @@
 #include "./include/run.h"
 
-#define BACKGROUND_COLOR    0x0000
-#define ACCENT_COLOR        0xFFFF
-
 void run(char* rom)
 {
     CHIP8 chip8;
@@ -15,6 +12,7 @@ void run(char* rom)
     int count = 0;
     bool running = true;
     time_t begin = time(NULL);
+    srand(time(NULL));
     while (running) {
         SDL_Event event;
 
@@ -31,10 +29,8 @@ void run(char* rom)
                 chip8.ST--;
         }
 
-        if (chip8.V[0xF] == 1) {
+        if (chip8.V[0xF] == 1)
             drawScreen(&chipWindow, &chip8);
-            chip8.V[0xF] = 0;
-        }
 
         while (SDL_PollEvent(&event) != 0) {
             switch (event.type) {
@@ -46,10 +42,12 @@ void run(char* rom)
         }
 
         count++;
-        usleep(1000000); // linux specific
+        regDump(&chip8);
+        usleep(100000); // linux specific
     }
     SDL_DestroyWindow((&chipWindow)->window);
     SDL_Quit();
+
 }
 
 
@@ -128,8 +126,8 @@ bool instructions(uint16_t opcode, CHIP8* chip8)
     case 0x3:
     {
         // 0x3XNN: if V[X] == NN, skip next instruction
-        uint8_t value = (opcode & 0x00FF) << 8;
-        if (chip8->V[secondDigit] == value) {
+        uint8_t value = opcode & 0x00FF;
+        if (chip8->V[thirdDigit] == value) {
             chip8->PC += 4;
         } else {
             chip8->PC += 2;
@@ -140,8 +138,8 @@ bool instructions(uint16_t opcode, CHIP8* chip8)
     case 0x4:
     {
         // 0x4XNN: if V[X] != NN, skip next instruction
-        uint8_t value = (opcode & 0x00FF) << 8;
-        if (chip8->V[secondDigit] != value) {
+        uint8_t value = opcode & 0x00FF;
+        if (chip8->V[thirdDigit] != value) {
             chip8->PC += 4;
         } else {
             chip8->PC += 2;
@@ -234,12 +232,10 @@ bool instructions(uint16_t opcode, CHIP8* chip8)
             // 0x8XY4: Sets V[X] to V[X] + V[Y], sets V[F] to 1 if carry
             uint16_t sum = chip8->V[thirdDigit] + chip8->V[secondDigit];
 
-            chip8->V[thirdDigit] = (uint8_t)(sum & 0x00FF);
-            if ((sum & 0xFF00) > 0) {
+            chip8->V[thirdDigit] = (uint8_t)(sum & 0xFF);
+            chip8->V[0xF] = 0;
+            if (sum > 0xFF)
                 chip8->V[0xF] = 1;
-            } else {
-                chip8->V[0xF] = 0;
-            }
             chip8->PC += 2;
             break;
         }
@@ -247,14 +243,13 @@ bool instructions(uint16_t opcode, CHIP8* chip8)
         case 0x5:
         {
             // 0x8XY5: Sets V[X] to V[X] - V[Y], sets V[F] to 1 if there's a borrow 
-            uint16_t diff = chip8->V[thirdDigit] - chip8->V[secondDigit];
+            uint8_t diff = chip8->V[thirdDigit] - chip8->V[secondDigit];
 
-            chip8->V[thirdDigit] = (uint8_t)(diff & 0x00FF);
-            if (chip8->V[thirdDigit] > chip8->V[secondDigit]) {
+            chip8->V[thirdDigit] = diff;
+            chip8->V[0xF] = 0;
+            if ((chip8->V[thirdDigit] & 0xF) > (chip8->V[secondDigit] & 0xF)) 
                 chip8->V[0xF] = 1;
-            } else {
-                chip8->V[0xF] = 0;
-            }
+
             chip8->PC += 2;
             break;
         }
@@ -262,7 +257,7 @@ bool instructions(uint16_t opcode, CHIP8* chip8)
         case 0x6:
         { 
             // 0x8XY6: Stores the least significant bit to V[F] then right shifts by 1
-            chip8->V[0xF] = (uint8_t)firstDigit;
+            chip8->V[0xF] = chip8->V[thirdDigit] & 0x1;
             chip8->V[thirdDigit] >>= 1;
             chip8->PC += 2;
             break;
@@ -273,12 +268,11 @@ bool instructions(uint16_t opcode, CHIP8* chip8)
             // 0x8XY7: Sets V[X] to V[Y] - V[X] and sets V[F]to 0 when there's a borrow
             uint16_t diff = chip8->V[secondDigit] - chip8->V[thirdDigit];
 
-            chip8->V[thirdDigit] = (uint8_t)(diff & 0x00FF);
-            if (chip8->V[thirdDigit] < chip8->V[secondDigit]) {
+            chip8->V[thirdDigit] = diff;
+            chip8->V[0xF] = 0;
+            if ((chip8->V[thirdDigit] & 0xF) > (chip8->V[secondDigit] & 0xF)) 
                 chip8->V[0xF] = 1;
-            } else {
-                chip8->V[0xF] = 0;
-            }
+
             chip8->PC += 2;
             break;
         }
@@ -286,7 +280,7 @@ bool instructions(uint16_t opcode, CHIP8* chip8)
         case 0xE:
         {
             // 0x8XYE: Stores the most significant bit to V[F] then left shifts by 1
-            chip8->V[0xF] = (uint8_t)fourthDigit;
+            chip8->V[0xF] = (chip8->V[thirdDigit] & 0x80) >> 7;
             chip8->V[thirdDigit] <<= 1;
             chip8->PC += 2;
             break;
@@ -330,7 +324,7 @@ bool instructions(uint16_t opcode, CHIP8* chip8)
     case 0xA:
     {
         // 0xANNN: Set I to NNN
-        uint16_t address = opcode & 0x0FFF;
+        uint32_t address = opcode & 0xFFF;
         chip8->I = address;
         chip8->PC += 2;
         break;
@@ -347,9 +341,9 @@ bool instructions(uint16_t opcode, CHIP8* chip8)
     case 0xC:
     {
         // 0xCXNN: Sets V[X] to teh result of a bitwise and on a random number [0,255]
-        uint16_t randNum = 0x45; // Hardcoded for now
+        uint16_t randNum = rand() % 256;
         uint16_t value = opcode & 0x00FF;
-        chip8->V[secondDigit] = randNum & value;
+        chip8->V[thirdDigit] = randNum & value;
         chip8->PC += 2;
         break;
     }
@@ -360,42 +354,39 @@ bool instructions(uint16_t opcode, CHIP8* chip8)
         // Each row of 8 pixels is read as bit-coded starting from memory location I (doesn't change after instruction)
         // V[F] is set to 1 if any screen pixels are flipped from set to unset when the sprite is drawn, else 0
 
-        uint8_t curPos = 64 * chip8->V[thirdDigit] + chip8->V[secondDigit]; // Location the sprite is drawn at
+        uint8_t xPos = chip8->V[thirdDigit];
+        uint8_t yPos = chip8->V[secondDigit];
+        uint16_t originalI = chip8->I;
+        chip8->V[0xF] = 0;
 
-        bool flip = false;
-        uint8_t tempPointer = chip8->I;
+        printf("\n\t\tInitial: (%02X, %02X) : %2X\n", xPos, yPos, (yPos * 64) + xPos);
 
-        /*
-        for (int i = 0; i < firstDigit; i++) {
-            for (int j = 0; j < 8; j++) {
-                if ((chip8->memArr[tempPointer] ^ chip8->displayArr[curPos]) == 1)
-                    flip = true;
-                chip8->displayArr[curPos++] = chip8->memArr[tempPointer++];
+        for (int y = 0; y < firstDigit; y++) {
+            chip8->I = originalI + y;
+            uint8_t pixelData = chip8->memArr[chip8->I];
+            uint8_t curYPos = yPos + y;
+            printf("%02X", pixelData);
+            for (int x = 0; x < 8; x++) {
+                uint8_t curXPos = xPos + x;
+                uint16_t buffPos = (curYPos * 64) + curXPos;
+
+                uint8_t pixelBit = (pixelData & 0x80) >> 7;
+                //printf("(%2X, %2X) : %1X\n", curXPos, curYPos, pixelBit);
+                //if ((chip8->displayArr[buffPos] == 1) && (pixelBit == 0))
+                if (chip8->displayArr[buffPos] ^ pixelBit == 0)
+                    chip8->V[0xF] = 1;
+
+                
+                chip8->displayArr[buffPos] ^= pixelBit;
+
+                pixelData = pixelData << 1;
             }
-            curPos -= 8;
-            curPos *= 64;
+            printf("\n");
         }
-        */
 
-        for (int i = 0; i < firstDigit; i++) {
-            uint8_t pixel = chip8->memArr[tempPointer + i];
-            for (int j = 0; j < 8; j++) {
-                if ((pixel & (0x80 >> j)) != 0) {
-                    if (chip8->displayArr[curPos] == 1) {
-                        chip8->V[0xF] = 1;
-                    }
-                    chip8->displayArr[curPos] ^= 1;
-                }
-                curPos++;
-            }
-            curPos -= 8;
-            curPos *= 64;
-        } 
+        printDisplayBuff(chip8);
 
-        if (flip)
-            chip8->V[0xF] = 1;
-
-
+        chip8->I = originalI;
         chip8->PC += 2;
         break;
     }
@@ -431,6 +422,8 @@ bool instructions(uint16_t opcode, CHIP8* chip8)
         {
             case 0x07:
             {
+                // 0xFX07: Sets V[X] to the value of the delay timer
+                chip8->V[thirdDigit] = chip8->DT;
                 chip8->PC += 2;
                 break;
             }
@@ -441,36 +434,63 @@ bool instructions(uint16_t opcode, CHIP8* chip8)
             }
             case 0x15:
             {
+                // 0xFX15: Sets DT to V[X]
+                chip8->DT = chip8->V[thirdDigit];
                 chip8->PC += 2;
                 break;
             }
             case 0x18:
             {
+                // 0xFX18: Sets the sound timer to V[X]
+                chip8->ST = chip8->V[thirdDigit];
                 chip8->PC += 2;
                 break;
             }
             case 0x1E:
             {
+                // 0xFX1E: Adds V[X] to I
+                chip8->I += chip8->V[thirdDigit];
                 chip8->PC += 2;
                 break;
             }
             case 0x29:
             {
+                // 0xFX29: Sets I to the location of the sprite for the character in V[X]
+                uint8_t character = chip8->V[thirdDigit];
+                uint16_t addr = character * 5;
                 chip8->PC += 2;
                 break;
             }
             case 0x33:
             {
+                // 0xFX33: Stores the Binary Coded decimal representation of V[X] with the most significant bit at the address of I and increase with each bit
+                int value = (int)(chip8->V[thirdDigit]);
+                chip8->memArr[chip8->I] = value / 100;
+
+                value %= 100;
+                chip8->memArr[chip8->I+1] = value / 10;
+
+                value %= 10;
+                chip8->memArr[chip8->I+2] = value / 1;
+
                 chip8->PC += 2;
                 break;
             }
             case 0x55:
             {
+                // 0xFXEE: Regdump, Stores values from V[0] to V[X] starting at I and increasing
+                uint16_t originalI = chip8->I;
+                for (uint8_t i = 0; i <= thirdDigit; i++)
+                    chip8->memArr[originalI++] = chip8->V[i];
                 chip8->PC += 2;
                 break;
             }
             case 0x65:
             {
+                // 0xFXEE: Regload, Loads values from V[0] to V[X] starting at I and increasing
+                uint16_t originalI = chip8->I;
+                for (uint8_t i = 0; i <= thirdDigit; i++)
+                    chip8->V[i] = chip8->memArr[originalI++];
                 chip8->PC += 2;
                 break;
             }
