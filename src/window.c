@@ -21,9 +21,6 @@ void initializeScreenSurface(Chip8Window* chipWindow)
 {
     chipWindow->screen = NULL;
     chipWindow->screen = SDL_GetWindowSurface(chipWindow->window);
-    //SDL_FillRect(chipWindow->screen,
-    //             NULL,
-    //             SDL_MapRGB(chipWindow->screen->format, 0x00, 0x00, 0x00));
     SDL_UpdateWindowSurface(chipWindow->window);
 }
 

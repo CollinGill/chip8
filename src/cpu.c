@@ -18,6 +18,12 @@ void initializeCHIP8(CHIP8* chip8) {
     for (int i = 0; i < (sizeof(chip8->V) / sizeof(chip8->V[0])); i++)
         chip8->V[i] = 0x00;
 
+    for (int i = 0; i < (sizeof(chip8->keypad) / sizeof(chip8->keypad[0])); i++)
+        chip8->keypad[i] = 0x00;
+
+    chip8->keyReg = 0x0;
+    chip8->waitForKeyPress = false;
+
     chip8->PC = 0x0200;
     chip8->I = 0x0000;
     chip8->DT = 0x0000;
@@ -62,7 +68,7 @@ void loadROM(CHIP8* chip8, char* file)
     // Creating the buffer then initializing it to 0's
     uint8_t buffer[0x0E00];
     for (int i = 0; i < (sizeof(buffer) / sizeof(buffer[0])); i++)
-        buffer[i] = 0;
+        buffer[i] = false;
 
     fread(buffer, sizeof(buffer), 1, rom);
 

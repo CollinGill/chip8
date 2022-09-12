@@ -1,8 +1,8 @@
 #ifndef STACK_H
 #define STACK_H
 
-#include<stdint.h>
-#include<stdlib.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 typedef struct Frame
 {

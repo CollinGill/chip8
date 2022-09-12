@@ -1,6 +1,7 @@
 #ifndef CPU_H
 #define CPU_H
 
+#include <stdbool.h>
 #include "./stack.h"
 
 #define DISPLAY_WIDTH   64
@@ -20,6 +21,12 @@ typedef struct CHIP8
     struct Stack* chipStack;
 
     uint8_t V[0x10];
+
+    // Keypad: 1 := key is currently pressed, 0 := key is not currently pressed
+    bool keypad[0x10];
+    uint8_t keyReg;
+    bool waitForKeyPress;
+
 } CHIP8;
 
 void initializeCHIP8(CHIP8* chip8);

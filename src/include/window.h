@@ -1,8 +1,8 @@
 #ifndef WINDOW_H
 #define WINDOW_H
 
-#include <stdbool.h>
 #include <SDL2/SDL.h>
+
 #include "./cpu.h"
 
 #define WINDOW_WIDTH 1280 

@@ -11,16 +11,20 @@ void run(char* rom)
 
     int count = 0;
     bool running = true;
-    time_t begin = time(NULL);
+
+    // Timing
     srand(time(NULL));
+
     while (running) {
         SDL_Event event;
 
 
         uint16_t opcode = (chip8.memArr[chip8.PC] << 8) | chip8.memArr[chip8.PC + 1];
         printf("%04X |\t %04X\n", chip8.PC, opcode);
+        if (!chip8.waitForKeyPress) {
         /*running = */instructions(opcode, &chip8); // uncomment the `running =` part in order to test if opcodes are valid
-        
+        } 
+
         if (count % 9 == 0) {
             if (chip8.DT > 0)
                 chip8.DT--;
@@ -33,6 +37,14 @@ void run(char* rom)
 
         while (SDL_PollEvent(&event) != 0) {
             switch (event.type) {
+                case SDL_KEYDOWN:
+                    keyDown(event, &chip8);
+                    break;
+
+                case SDL_KEYUP:
+                    keyUp(event, &chip8);
+                    break;
+
                 case SDL_QUIT:
                     SDL_Log("QUIT");
                     running = false;
@@ -42,7 +54,7 @@ void run(char* rom)
 
         count++;
         regDump(&chip8);
-        usleep(1000); // linux specific
+        usleep(1200); // linux specific
     }
     SDL_DestroyWindow((&chipWindow)->window);
     SDL_Quit();
@@ -145,7 +157,7 @@ bool instructions(uint16_t opcode, CHIP8* chip8)
         break;
     }
 
-    case 0x5:
+    case 0x5:    
     {
         switch (firstDigit)
         {
@@ -338,7 +350,7 @@ bool instructions(uint16_t opcode, CHIP8* chip8)
 
     case 0xC:
     {
-        // 0xCXNN: Sets V[X] to teh result of a bitwise and on a random number [0,255]
+        // 0xCXNN: Sets V[X] to the result of a bitwise and on a random number [0,255]
         uint16_t randNum = rand() % 256;
         uint16_t value = opcode & 0x00FF;
         chip8->V[thirdDigit] = randNum & value;
@@ -371,7 +383,7 @@ bool instructions(uint16_t opcode, CHIP8* chip8)
                 uint8_t pixelBit = (pixelData & 0x80) >> 7;
                 //printf("(%2X, %2X) : %1X\n", curXPos, curYPos, pixelBit);
                 //if ((chip8->displayArr[buffPos] == 1) && (pixelBit == 0))
-                if ((chip8->displayArr[buffPos] == 1) && (chip8->displayArr[buffPos] ^ pixelBit == 0))
+                if ((chip8->displayArr[buffPos] == 1) && ((chip8->displayArr[buffPos] ^ pixelBit) == 0))
                     chip8->V[0xF] = 1;
 
                 
@@ -395,12 +407,25 @@ bool instructions(uint16_t opcode, CHIP8* chip8)
         {
             case 0x9E:
             {
-                chip8->PC += 2;
+                // 0xEX9E: Skip the following instruction if the key corresponding to the hex value currently stored 
+                // in register VX is pressed
+
+                if (chip8->keypad[chip8->V[secondDigit]]) {
+                    chip8->PC += 4;
+                } else {
+                    chip8->PC += 2;
+                }
                 break;
             }
             case 0xA1:
             {
-                chip8->PC += 2;
+                // 0xEX9E: Skip the following instruction if the key corresponding to the hex value currently stored 
+                // in register VX is not pressed
+                if (!chip8->keypad[chip8->V[secondDigit]]) {
+                    chip8->PC += 4;
+                } else {
+                    chip8->PC += 2;
+                }
                 break;
             }
             default:
@@ -427,7 +452,9 @@ bool instructions(uint16_t opcode, CHIP8* chip8)
             }
             case 0x0A:
             {
-                chip8->PC += 2;
+                // 0xFX0A: Wait for a keypress and store the result in register VX
+                chip8->keyReg = thirdDigit;
+                chip8->waitForKeyPress = true;
                 break;
             }
             case 0x15:
@@ -454,8 +481,7 @@ bool instructions(uint16_t opcode, CHIP8* chip8)
             case 0x29:
             {
                 // 0xFX29: Sets I to the location of the sprite for the character in V[X]
-                uint8_t character = chip8->V[thirdDigit];
-                uint16_t addr = character * 5;
+                chip8->I = chip8->memArr[chip8->V[secondDigit]];
                 chip8->PC += 2;
                 break;
             }
